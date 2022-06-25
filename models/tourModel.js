@@ -8,10 +8,13 @@ const tourSchema = new Schema(
       type: 'string',
       required: [true, 'A tour must have a name'],
       unique: true,
-      trime: true,
+      trim: true,
       maxlength: [40, 'The tour must have at most 40 characters'],
       minlength: [10, 'The tour must have at least 10 characters'],
-      validate: [validator.isAlpha, 'Tour name must not include numbers'],
+      validate: {
+        validator: (val) => validator.isAlpha(val, ['en-US'], { ignore: ' -' }), //" =" => " " & "-"
+        message: 'A tour name must only contain characters between A-Z',
+      },
     },
     slug: String,
     duration: {
