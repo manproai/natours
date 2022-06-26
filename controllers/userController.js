@@ -1,3 +1,5 @@
+const { catchAsync } = require('../utils/catchAsync');
+const User = require('../models/userModel');
 const fs = require('fs');
 
 //Reading a file ------------------------------------------------------------
@@ -6,16 +8,19 @@ const users = JSON.parse(
 );
 
 //Controllers ----------------------------------------------------------------
-exports.getAllUsers = (req, res) => {
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  //Executing the Query -------------------------------------------------------------
+
+  const allUsers = await User.find();
+
+  //Sending the response -------------------------------------------------------------
   res.status(200).json({
     status: 'success',
-    results: users.length,
     data: {
-      users,
+      allUsers,
     },
   });
-};
-
+});
 exports.getUser = (req, res) => {
   console.log(req.requestTime);
   const id = req.params.id * 1;

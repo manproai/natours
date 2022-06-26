@@ -29,7 +29,9 @@ const handleCastErrorDB = (error) => {
 };
 
 const handleDuplicateFieldsDB = (error) => {
-  error.message = `Duplicate fields value: "${error.keyValue.name}". Please use another value`;
+  error.message = `Duplicate fields value: "${
+    error.keyValue.name ? error.keyValue.name : error.keyValue.email
+  }". Please use another value`;
   return new AppeError(error.message, 400);
 };
 
@@ -38,6 +40,12 @@ const handleValidationErrorDB = (error) => {
   const message = `Invalid input data. ${errors.join('.')}`;
   return new AppeError(message, 400);
 };
+
+const handleJWTError = () =>
+  new AppeError('Invalid Token. Please, log in again.', 401);
+
+const handleTokenExpireError = () =>
+  new AppeError('Token expired. Please, log in again.', 401);
 
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
@@ -58,6 +66,14 @@ module.exports = (err, req, res, next) => {
 
     if (error.name === 'ValidationError') {
       error = handleValidationErrorDB(error);
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      error = handleJWTError();
+    }
+
+    if (error.name === 'TokenExpiredError') {
+      error = handleTokenExpireError();
     }
     sendErrorProd(error, res);
   }
