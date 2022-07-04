@@ -1,6 +1,7 @@
 const { Schema, model } = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new Schema({
   name: {
@@ -45,7 +46,16 @@ const userSchema = new Schema({
     type: Date,
     default: Date.now(),
   },
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
+
+//mongo middlewares ------------------------------------------------------------------------------------------------
 
 userSchema.pre('save', async function (next) {
   //only works when the password is modified TODO: isModified => checks
@@ -60,6 +70,19 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordDateChangedAt = Date.now() - 1000;
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
+
+//Instance methods of mongo --------------------------------------------------------------------------------
 //TODO: Instance methods allows us to have the functionality in all of the documents by getting doc from db
 //Here we cannot access this.password because we set the password select to false so we have to give it in the arguments
 userSchema.methods.correctPassword = async function (password, userPassword) {
@@ -76,6 +99,19 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     return JWTTimestamp < changedTimeStamp;
   }
   return true;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 const User = model('User', userSchema);

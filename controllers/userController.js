@@ -1,11 +1,19 @@
 const { catchAsync } = require('../utils/catchAsync');
 const User = require('../models/userModel');
-const fs = require('fs');
+const AppError = require('../utils/appError');
 
-//Reading a file ------------------------------------------------------------
-const users = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/users.json`, 'utf-8')
-);
+//Methods ----------------------------------------------------------------
+const filterObj = (body, ...fields) => {
+  const filteredObj = {};
+
+  Object.keys(body).forEach((el) => {
+    if (fields.includes(el)) {
+      filteredObj[el] = body[el];
+    }
+  });
+
+  return filteredObj;
+};
 
 //Controllers ----------------------------------------------------------------
 exports.getAllUsers = catchAsync(async (req, res, next) => {
@@ -21,95 +29,45 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     },
   });
 });
-exports.getUser = (req, res) => {
-  console.log(req.requestTime);
-  const id = req.params.id * 1;
-  const selectedUser = users.find((t) => t.id === id);
-  if (selectedUser) {
-    return res.status(200).json({
-      status: 'success',
-      requestedAt: req.requestTime,
-      data: {
-        selectedUser,
-      },
-    });
+exports.getUser = (req, res, next) => {};
+
+exports.updateUser = (req, res, next) => {};
+
+exports.deleteUser = (req, res, next) => {};
+
+exports.createUser = (req, res, next) => {};
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+  //check whether there is a password in the body, it is only for other documents
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(
+      new AppError(
+        'This is not to change your password. Please use /updatePassword instead',
+        400
+      )
+    );
   }
-  res.status(404).json({
-    status: 'fail',
-    message: 'Invalid ID',
+  //filter the unwanted field names
+  const filteredObj = filterObj(req.body, 'email', 'name');
+
+  //Update the user
+  const user = await User.findByIdAndUpdate(req.user.id, filteredObj, {
+    new: true,
+    runValidators: true,
   });
-};
 
-exports.updateUser = (req, res) => {
-  const id = req.params.id * 1;
-  const selectedUser = users.find((t) => t.id === id);
+  //update the user
+  res.status(200).json({
+    status: 'success',
+    user,
+  });
+});
 
-  if (!selectedUser) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-
-  for (const key in req.body) {
-    users[id][key] = req.body[key];
-  }
-  const updatedUser = users[id];
-  fs.writeFile(
-    `${__dirname}/dev-data/data/users.json`,
-    JSON.stringify(users),
-    (err) => {
-      if (err) console.log(err);
-      res.status(200).json({
-        status: 'success',
-        data: {
-          updatedUser,
-        },
-      });
-    }
-  );
-};
-
-exports.deleteUser = (req, res) => {
-  const id = req.params.id * 1;
-  const selectedUser = users.find((t) => t.id === id);
-
-  if (!selectedUser) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-
-  users.splice(users.indexOf(selectedUser), 1);
-  fs.writeFile(
-    `${__dirname}/dev-data/data/users.json`,
-    JSON.stringify(users),
-    (err) => {
-      if (err) console.log(err);
-      res.status(204).json({
-        status: 'success',
-        data: null,
-      });
-    }
-  );
-};
-
-exports.createUser = (req, res) => {
-  const newId = users[users.length - 1].id + 1;
-  const newUser = Object.assign({ id: newId }, req.body);
-  users.push(newUser);
-  fs.writeFile(
-    `${__dirname}/dev-data/data/users.json`,
-    JSON.stringify(users),
-    (err) => {
-      if (err) throw new Error(err);
-      res.status(201).json({
-        status: 'success',
-        data: {
-          users: newUser,
-        },
-      });
-    }
-  );
-};
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  //Change the user status.
+  console.log(req.user.id);
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+  res.status(204).json({
+    status: 'success',
+  });
+});
