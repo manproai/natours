@@ -24,7 +24,7 @@ const router = express.Router();
 router.post('/signup', signup);
 router.post('/login', login);
 
-router.patch('/resetPassword/:to ken', resetPassword);
+router.patch('/resetPassword/:token', resetPassword);
 router.post('/forgotPassword', forgotPassword);
 router.patch('/updatePassword', checkAuth, updatePassword);
 router.patch('/updateMe', checkAuth, updateMe);
