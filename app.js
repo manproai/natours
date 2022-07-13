@@ -43,13 +43,13 @@ const limiter = rateLimit({
 
 app.use('/api', limiter); // against brute force attack
 
-//parse the request body
+//parse the body data into req.body and limiting the size of data coming 
 app.use(express.json({ limit: '10kb' }));
 
 // data sanitization against NOSQL query injection
 app.use(mongoSanitize());
 
-//Data sanitization against xss
+//Data sanitization against xss (mailisious html and javascript code injection)
 app.use(xss());
 
 //prevent param pollution

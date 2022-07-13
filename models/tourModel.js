@@ -1,6 +1,7 @@
 const { Schema, model } = require('mongoose');
 const slugify = require('slugify');
 const validator = require('validator');
+// const User = require('./userModel');
 
 const tourSchema = new Schema(
   {
@@ -85,6 +86,35 @@ const tourSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      }
+    ],
+    guides: [
+      {
+        type: Schema.ObjectId,
+        ref: 'User',
+      }
+    ],
   },
   //ALLOWING VIRTUAL PROPERTIES
   {
@@ -103,6 +133,21 @@ tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
+
+tourSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordDateChangedAt -passwordResetExpires -passwordResetToken'
+  });
+  next();
+})
+
+//For Embedding user data into the tour, so here before saving, we are calling the user data and saving inside guides
+// tourSchema.pre('save', async function (next) {
+//   const guides = this.guides.map(async el => await User.findById(el));
+//   this.guides = await Promise.all(guides);
+//   next();
+// });
 
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
