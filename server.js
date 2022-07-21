@@ -1,4 +1,4 @@
-const dotenv = require('dotenv');
+const dotenv = require('dotenv').config();
 const mongoose = require('mongoose');
 
 process.on('unhandledRejection', (err) => {
@@ -10,13 +10,11 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-dotenv.config({ path: `${__dirname}/config.env` });
-
 const app = require(`./app.js`);
 
 const DB = process.env.MONGODB_ATLAS.replace(
   '<password>',
-  process.env.MONGODB_PASSWORD
+  process.env.DATABASE_PASSWORD
 );
 
 mongoose.connect(DB).then(() => {
