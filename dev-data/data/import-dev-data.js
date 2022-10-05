@@ -9,7 +9,7 @@ const dbURI = process.env.MONGODB_ATLAS.replace('<password>', process.env.DATABA
 mongoose.connect(process.env.DATABASE_LOCAL)
 .then(()=> {
     console.log("DB Connection has been successfully established!");
-    const data = JSON.parse(fs.readFileSync('./tours.json', 'utf-8'));
+    const data = JSON.parse(fs.readFileSync(__dirname+'/tours.json', 'utf-8'));
 
 const importData = async () => {
     try {

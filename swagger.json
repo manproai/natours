@@ -1,0 +1,75 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "Natours project",
+      "description": "Tour project for booking a tour",
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT"
+      }
+    },
+    "components": {
+        "securitySchemas": {
+            "bearerAuth": {
+                "type": "http",
+                "schema": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "host": "localhost:8000",
+    "basePath": "/api/v1",
+    "tags": [
+      {
+        "name": "Tours",
+        "description": "API for the tours"
+      }
+    ],
+    "schemes": ["http"],
+    "consumes": ["application/json"],
+    "produces": ["application/json"],
+    "paths" : {
+        "/tours" : {
+            "get" : {
+                "summary" : "Get all the tours",
+                "description": "Get all the tours",
+                "produces": ["application/json"],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "name": "string",
+                            "slug": "string",
+                            "duration": "number",
+                            "maxGroupSize": "number",
+                            "difficulty": "string",
+                            "ratingsAverage": "number",
+                            "ratingsQuantity": "number",
+                            "price": "number",
+                            "priceDiscount": "number",
+                            "summary": "string",
+                            "description": "string",
+                            "imageCover": "string",
+                            "images": "array",
+                            "createdAt": "number",
+                            "startDates": "array",
+                            "secretTour": "boolean",
+                            "startLocation": "array",
+                            "locations": "array",
+                            "guides": "array",
+                            "type": "array",
+                            "$ref": "#/tour"                           
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid status value",
+                        "schema": {
+                        }
+                    }
+                }
+            }
+        }
+    }
+  }

@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const swaggerUi = require('swagger-ui-express');
+swaggerDocument = require('./swagger.json');
 
 const AppError = require('./utils/appError');
 const errorHandler = require('./controllers/errorController');
@@ -68,6 +70,14 @@ app.use(
 
 //set static files
 app.use(express.static(`${__dirname}/public`));
+
+//Swagger ------------------------------------------------------------------------------------
+app.use(
+  '/api-docs',
+  swaggerUi.serve, 
+  swaggerUi.setup(swaggerDocument)
+);
+
 
 //Routes ------------------------------------------------------------------------------------
 app.use('/api/v1/tours', tourRouter);
